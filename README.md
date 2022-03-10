@@ -1,37 +1,36 @@
-# Hyperdrive
-[![Build Status](https://travis-ci.org/hypercore-protocol/hyperdrive.svg?branch=master)](https://travis-ci.org/hypercore-protocol/hyperdrive)
+# Bitdrive
 
-Hyperdrive is a secure, real-time distributed file system designed for easy P2P file sharing.
+Bitdrive is a secure, real-time distributed file system designed for easy P2P file sharing.
 
 It has a handful of cool features:
 * __Version Controlled__: Files are versioned by default, making it easy to see historical changes and prevent data loss.
-* __Composable__: Using our mount system, Hyperdrives can be nested within other Hyperdrives, enabling powerful multi-user collaboration tools.
-* __Shareable with One Link__: You can share an entire Hyperdrive with others by sending them a single 32-byte key. If you'd like more granularity, our mount system enables the fine-grained sharing of specific directories.
+* __Composable__: Using our mount system, Bitdrives can be nested within other Bitdrives, enabling powerful multi-user collaboration tools.
+* __Shareable with One Link__: You can share an entire Bitdrive with others by sending them a single 32-byte key. If you'd like more granularity, our mount system enables the fine-grained sharing of specific directories.
 * __Sparse Downloading__ By default, readers only download the portions of files they need, on demand. You can stream media from friends without jumping through hoops! Seeking is snappy and there's no buffering.
 * __Fast Lookups__: File metadata is stored in a distributed trie structure, meaning files can be located with minimal network lookups.
-* __Version Tagging__: You can assign string names to Hyperdrive versions and store these within the drive, making it straightforward to switch between semantically-meaningful versions.
+* __Version Tagging__: You can assign string names to Bitdrive versions and store these within the drive, making it straightforward to switch between semantically-meaningful versions.
 
-Hyperdrive can also be used in a variety of ways:
-* [__The Daemon__](https://github.com/hypercore-protocol/hyperdrive-daemon): The Hyperdrive daemon provides both a gRPC API for managing remote Hyperdrives, and a FUSE API that turns Hyperdrives into normal folders on your computer.
-* [__The Client__](https://github.com/hypercore-protocol/hyperdrive-daemon-client): A Node.js client for the daemon. With this you can build services targeting remote drives.
-* [__Beaker__](https://beakerbrowser.com): An experimental browser that has first-class support for Hyperdrive.
-* [__Standalone__](#api): Hyperdrive has flexible storage/networking interfaces, making it easy to embed within larger projects.
+Bitdrive can also be used in a variety of ways:
+* [__The Daemon__](https://github.com/bitwebs/bitdrive-daemon): The Bitdrive daemon provides both a gRPC API for managing remote Bitdrives, and a FUSE API that turns Bitdrives into normal folders on your computer.
+* [__The Client__](https://github.com/bitwebs/bitdrive-daemon-client): A Node.js client for the daemon. With this you can build services targeting remote drives.
+* [__ByteBrowser__](https://github.com/bytebrowser): An experimental browser that has first-class support for Bitdrive.
+* [__Standalone__](#api): Bitdrive has flexible storage/networking interfaces, making it easy to embed within larger projects.
 
 ## Installation
-If you're looking for a "batteries included" experience, check out the [Hyperdrive daemon](https://github.com/hypercore-protocol/hyperdrive-daemon).
+If you're looking for a "batteries included" experience, check out the [Bitdrive daemon](https://github.com/bitwebs/bitdrive-daemon).
 
 For standalone use in your modules, you can install through NPM:
 ``` js
-npm install hyperdrive
+npm install @web4/bitdrive
 ```
 
 ## Usage
 
-Hyperdrive aims to implement the same API as Node.js' core `fs` module, and mirrors many POSIX APIs.
+Bitdrive aims to implement the same API as Node.js' core `fs` module, and mirrors many POSIX APIs.
 
 ``` js
-var Hyperdrive = require('hyperdrive')
-var drive = new Hyperdrive('./my-first-hyperdrive') // content will be stored in this folder
+var Bitdrive = require('@web4/bitdrive')
+var drive = new Bitdrive('./my-first-bitdrive') // content will be stored in this folder
 
 drive.writeFile('/hello.txt', 'world', function (err) {
   if (err) throw err
@@ -46,7 +45,7 @@ drive.writeFile('/hello.txt', 'world', function (err) {
 })
 ```
 
-Hyperdrives can easily be replicated to other machines over any stream-based transport layer!
+Bitdrives can easily be replicated to other machines over any stream-based transport layer!
 
 ``` js
 var net = require('net')
@@ -61,19 +60,19 @@ server.listen(10000)
 
 // ... on another
 
-var clonedDrive = new Hyperdrive('./my-cloned-hyperdrive', origKey)
+var clonedDrive = new Bitdrive('./my-cloned-bitdrive', origKey)
 var socket = net.connect(10000)
 
 socket.pipe(clonedDrive.replicate(true)).pipe(socket)
 ```
 
-It also comes with build in versioning, live replication (where the replication streams remain open, syncing new changes), and nested Hyperdrive mounting. See more below.
+It also comes with build in versioning, live replication (where the replication streams remain open, syncing new changes), and nested Bitdrive mounting. See more below.
 
 ## API
 
-#### `var drive = new Hyperdrive(storage, [key], [options])`
+#### `var drive = new Bitdrive(storage, [key], [options])`
 
-Create a new Hyperdrive.
+Create a new Bitdrive.
 
 The `storage` parameter defines how the contents of the drive will be stored. It can be one of the following, depending on how much control you require over how the drive is stored.
 
@@ -83,9 +82,9 @@ The `storage` parameter defines how the contents of the drive will be stored. It
 
   - `name`: the name of the file to be stored
   - `opts`
-    - `key`: the [feed key](https://github.com/hypercore-protocol/hypercore#feedkey) of the underlying Hypercore instance
-    - `discoveryKey`: the [discovery key](https://github.com/hypercore-protocol/hypercore#feeddiscoverykey) of the underlying Hypercore instance
-  - `drive`: the current Hyperdrive instance
+    - `key`: the [feed key](https://github.com/bitwebs/unichain#feedkey) of the underlying Unichain instance
+    - `discoveryKey`: the [discovery key](https://github.com/bitwebs/unichain#feeddiscoverykey) of the underlying Unichain instance
+  - `drive`: the current Bitdrive instance
 
 Options include:
 
@@ -99,10 +98,10 @@ Options include:
 
 For more storage configuration, you can also provide any corestore option.
 
-Note that a cloned hyperdrive drive is fully "sparse" by default, meaning that the `sparse` and `sparseMetadata` options are both true. This is usually the best way to use Hyperdrive, but you can also set these options to false to enable eager downloading of both the content and the metadata. If you'd like more control over download strategies, you can use the `download` method directly.
+Note that a cloned bitdrive drive is fully "sparse" by default, meaning that the `sparse` and `sparseMetadata` options are both true. This is usually the best way to use Bitdrive, but you can also set these options to false to enable eager downloading of both the content and the metadata. If you'd like more control over download strategies, you can use the `download` method directly.
 
 ### Replication
-Hyperdrive replication occurs through streams, meaning you can pipe a drive's replication stream into any stream-based transport system you'd like. If you have many nested Hyperdrives mounted within a parent drive, `replicate` will sync all children as well.
+Bitdrive replication occurs through streams, meaning you can pipe a drive's replication stream into any stream-based transport system you'd like. If you have many nested Bitdrives mounted within a parent drive, `replicate` will sync all children as well.
 
 #### `var stream = drive.replicate(isInitiator, [options])`
 
@@ -118,9 +117,9 @@ Replicate this drive. Options include
 The `isInitiator` argument is a boolean indicating whether you are the iniatior of the connection (ie the client)
 or if you are the passive part (ie the server).
 
-If you are using a P2P swarm like [Hyperswarm](https://github.com/hyperswarm/hyperswarm) you can know this by checking if the swarm connection is a client socket or server socket. In Hyperswarm you can check that using [client property on the peer details object](https://github.com/hyperswarm/hyperswarm#swarmonconnection-socket-details--)
+If you are using a P2P swarm like [Bitswarm](https://github.com/bitwebs/bitswarm) you can know this by checking if the swarm connection is a client socket or server socket. In Hyperswarm you can check that using [client property on the peer details object](https://github.com/bitwebs/bitswarm#swarmonconnection-socket-details--)
 
-If you want to multiplex the replication over an existing hypercore replication stream you can pass
+If you want to multiplex the replication over an existing unichain replication stream you can pass
 another stream instance instead of the `isInitiator` boolean.
 
 ### Public Fields
@@ -180,7 +179,7 @@ Emitted when data has been uploaded for the content feed.
 Emitted when a new peer has been added.
 
 ```js
-const drive = new Hyperdrive()
+const drive = new Bitdrive()
 
 drive.on('peer-add', (peer) => {
   console.log('Connected peer', peer.remotePublicKey)
@@ -201,7 +200,7 @@ Emitted when the drive has been closed.
 
 ### Extension Management
 
-Hyperdrive supports [hypercore](https://github.com/hypercore-protocol/hypercore#ext--feedregisterextensionname-handlers) extensions, letting you plug custom logic into a drive's replication streams.
+Bitdrive supports [unichain](https://github.com/bitwebs/unichain#ext--feedregisterextensionname-handlers) extensions, letting you plug custom logic into a drive's replication streams.
 
 #### `ext = drive.registerExtension(name, handlers)`
 
@@ -229,16 +228,16 @@ Send an extension message to a specific peer.
 Send a message to every peer you are connected to.
 
 ### Version Control
-Since Hyperdrive is built on top of append-only logs, old versions of files are preserved by default. You can get a read-only snapshot of a drive at any point in time with the `checkout` function, which takes a version number. Additionally, you can tag versions with string names, making them more parseable.
+Since Bitdrive is built on top of append-only logs, old versions of files are preserved by default. You can get a read-only snapshot of a drive at any point in time with the `checkout` function, which takes a version number. Additionally, you can tag versions with string names, making them more parseable.
 
 #### `var oldDrive = drive.checkout(version, [opts])`
 
-Checkout a readonly copy of the drive at an old version. Options for the checkout are duplicated from the parent by default, but you can also pass in additional Hyperdrive options.
+Checkout a readonly copy of the drive at an old version. Options for the checkout are duplicated from the parent by default, but you can also pass in additional Bitdrive options.
 
 #### `drive.createTag(name, [version], cb)`
 Create a tag that maps to a given version. If a version is not provided, the current version will be used.
 
-Tags are stored inside the drive's "hidden trie," meaning they're not enumerable using Hyperdrive's standard filesystem methods. They will replicate with all the other data in the drive, though.
+Tags are stored inside the drive's "hidden trie," meaning they're not enumerable using Bitdrive's standard filesystem methods. They will replicate with all the other data in the drive, though.
 
 #### `drive.getTaggedVersion(name, cb)`
 Return the version corresponding to a tag.
@@ -422,7 +421,7 @@ Options include:
 If `wait` is set to `true`, this function will wait for data to be downloaded. If false, will return an error.
 
 ### File Descriptors
-If you want more control over your reads and writes, you can open file descriptors. The file descriptor API mirrors Node's descriptors. Importantly, Hyperdrive does not currently handle random-access writes. Similarly, appends require the previous contents of the file to be duplicated, though this all happens internally. Random-access reads, on the other hand, are fully supported and very fast.
+If you want more control over your reads and writes, you can open file descriptors. The file descriptor API mirrors Node's descriptors. Importantly, Bitdrive does not currently handle random-access writes. Similarly, appends require the previous contents of the file to be duplicated, though this all happens internally. Random-access reads, on the other hand, are fully supported and very fast.
 
 We're still investigating more performant solutions to random-access write and appends, and it's high on our priority list!
 
@@ -450,14 +449,14 @@ Watch for changes in the drive. Set `name` to `/` to watch for _all_ changes, or
 
 Note that currently watching will not notify you of changes in mounts. You will need to listen on all the mounted drives manually.
 
-### Hyperdrive Mounting
-Hyperdrive supports "mounting" other Hyperdrives at paths within a parent drive. This means that if your friend has a photo album drive, you can nest their drive within your own by calling `myDrive.mount('photos/my-friends-album', <my-friends-album-key>)`.
+### Bitdrive Mounting
+Bitdrive supports "mounting" other Bitdrives at paths within a parent drive. This means that if your friend has a photo album drive, you can nest their drive within your own by calling `myDrive.mount('photos/my-friends-album', <my-friends-album-key>)`.
 
 This feature is useful for composing larger collections out of smaller shareable units, or for aggregating content from many users into one aggregate drive. One pattern you might want to try is a "group" where each user has a structured drive with standard directory names within a parent (i.e. `my-group/userA/docs`, `my-group/userB/docs`). Using this pattern, it's easy to aggregate all "docs" with a recursive readdir over the group.
 
 #### `drive.mount(name, key, opts, cb)`
 
-Mounts another Hyperdrive at the specified mountpoint.
+Mounts another Bitdrive at the specified mountpoint.
 
 If a `version` is specified in the options, then the mountpoint will reference a static checkout (it will never update).
 
@@ -470,22 +469,22 @@ Options include:
 
 #### `drive.unmount(name, cb)`
 
-Unmount a previously-mounted Hyperdrive.
+Unmount a previously-mounted Bitdrive.
 
 #### `drive.createMountStream(opts)`
 
-Create a stream containing content/metadata feeds for all mounted Hyperdrives. Each entry in the stream has the form:
+Create a stream containing content/metadata feeds for all mounted Bitdrives. Each entry in the stream has the form:
 ```js
 {
   path: '/',                // The mountpoint
-  metadata: Hypercore(...), // The mounted metadata feed
-  content: Hypercore(...)   // The mounted content feed
+  metadata: Unichain(...), // The mounted metadata feed
+  content: Unichain(...)   // The mounted content feed
 }
 ```
 
 #### `drive.getAllMounts(opts, cb)`
 
-Returns a Map of the content/metadata feeds for all mounted Hyperdrives, keyed by their mountpoints. The results will always include the top-level feeds (with key '/').
+Returns a Map of the content/metadata feeds for all mounted Bitdrives, keyed by their mountpoints. The results will always include the top-level feeds (with key '/').
 
 Options include:
 ```js

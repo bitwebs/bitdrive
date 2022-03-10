@@ -1,10 +1,10 @@
 /**
- * A promisified version of the Hyperdrive API
+ * A promisified version of the Bitdrive API
  *
  * Note: The promises API does not currently include file descriptor operations.
 */
 
-module.exports = class HyperdrivePromises {
+module.exports = class BitdrivePromises {
   constructor (drive) {
     this.drive = drive
   }

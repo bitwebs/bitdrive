@@ -11,7 +11,7 @@ const APPROX_READS_PER_FD = 5
 const APPROX_WRITES_PER_FD = 5
 const INVALID_CHARS = new Set(['/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', '.', ' ', '\n', '\t', '\r'])
 
-class HyperdriveFuzzer extends FuzzBuzz {
+class BitdriveFuzzer extends FuzzBuzz {
   constructor (opts) {
     super(opts)
 
@@ -451,7 +451,7 @@ class HyperdriveFuzzer extends FuzzBuzz {
   }
 }
 
-class SparseHyperdriveFuzzer extends HyperdriveFuzzer {
+class SparseBitdriveFuzzer extends BitdriveFuzzer {
   async _setup () {
     await super._setup()
 
@@ -474,13 +474,13 @@ class SparseHyperdriveFuzzer extends HyperdriveFuzzer {
   }
 }
 
-module.exports = HyperdriveFuzzer
+module.exports = BitdriveFuzzer
 
 tape('20000 mixed operations, single drive', async t => {
   t.plan(1)
 
-  const fuzz = new HyperdriveFuzzer({
-    seed: 'hyperdrive',
+  const fuzz = new BitdriveFuzzer({
+    seed: 'bitdrive',
     debugging: false
   })
 
@@ -495,8 +495,8 @@ tape('20000 mixed operations, single drive', async t => {
 tape('20000 mixed operations, replicating drives', async t => {
   t.plan(1)
 
-  const fuzz = new SparseHyperdriveFuzzer({
-    seed: 'hyperdrive2',
+  const fuzz = new SparseBitdriveFuzzer({
+    seed: 'bitdrive2',
     debugging: false
   })
 
@@ -513,7 +513,7 @@ tape('100 quick validations (initialization timing)', async t => {
 
   try {
     for (let i = 0; i < 100; i++) {
-      const fuzz = new HyperdriveFuzzer({
+      const fuzz = new BitdriveFuzzer({
         seed: 'iteration #' + i,
         debugging: false
       })

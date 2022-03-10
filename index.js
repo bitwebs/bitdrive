@@ -11,18 +11,18 @@ const pump = require('pump')
 const pumpify = require('pumpify')
 const { Transform } = require('streamx')
 
-const coreByteStream = require('hypercore-byte-stream')
+const chainByteStream = require('@web4/unichain-byte-stream')
 const Nanoresource = require('nanoresource/emitter')
-const HypercoreProtocol = require('hypercore-protocol')
-const MountableHypertrie = require('mountable-hypertrie')
-const Corestore = require('corestore')
-const { Stat } = require('hyperdrive-schemas')
+const BitProtocol = require('@web4/bit-protocol')
+const MountableBittrie = require('@web4/mountable-bittrie')
+const Chainstore = require('@web4/chainstore')
+const { Stat } = require('@web4/bitdrive-schemas')
 
 const createFileDescriptor = require('./lib/fd')
 const errors = require('./lib/errors')
-const defaultCorestore = require('./lib/storage')
+const defaultChainstore = require('./lib/storage')
 const TagManager = require('./lib/tagging')
-const HyperdrivePromises = require('./promises')
+const BitdrivePromises = require('./promises')
 const { contentKeyPair, contentOptions, ContentState } = require('./lib/content')
 const { statIterator, createStatStream, createMountStream, createReaddirStream, readdirIterator } = require('./lib/iterator')
 
@@ -31,10 +31,10 @@ const STDIO_CAP = 20
 const WRITE_STREAM_BLOCK_SIZE = 524288
 const NOOP_FILE_PATH = ' '
 
-module.exports = HyperdriveCompat
+module.exports = BitdriveCompat
 module.exports.constants = require('filesystem-constants').linux
 
-class Hyperdrive extends Nanoresource {
+class Bitdrive extends Nanoresource {
   constructor (storage, key, opts) {
     super()
     this._initialize(storage, key, opts)
@@ -53,12 +53,12 @@ class Hyperdrive extends Nanoresource {
     this.live = true
     this.sparse = opts.sparse !== false
     this.sparseMetadata = opts.sparseMetadata !== false
-    this.subtype = opts.subtype || 'hyperdrive'
+    this.subtype = opts.subtype || 'bitdrive'
 
-    this.promises = new HyperdrivePromises(this)
+    this.promises = new BitdrivePromises(this)
 
     this._namespace = opts.namespace
-    this.corestore = defaultCorestore(storage, {
+    this.chainstore = defaultChainstore(storage, {
       ...opts,
       valueEncoding: 'binary',
       // TODO: Support mixed sparsity.
@@ -66,9 +66,9 @@ class Hyperdrive extends Nanoresource {
       extensions: opts.extensions
     })
 
-    if (this.corestore !== storage) this.corestore.on('error', err => this.emit('error', err))
+    if (this.chainstore !== storage) this.chainstore.on('error', err => this.emit('error', err))
     if (opts.namespace) {
-      this.corestore = this.corestore.namespace(opts.namespace)
+      this.chainstore = this.chainstore.namespace(opts.namespace)
     }
 
     // Set in ready.
@@ -104,7 +104,7 @@ class Hyperdrive extends Nanoresource {
   }
 
   get version () {
-    // TODO: The trie version starts at 1, so the empty hyperdrive version is also 1. This should be 0.
+    // TODO: The trie version starts at 1, so the empty bitdrive version is also 1. This should be 0.
     return this.db.version
   }
 
@@ -124,16 +124,16 @@ class Hyperdrive extends Nanoresource {
 
   _open (cb) {
     const self = this
-    return this.corestore.ready(err => {
+    return this.chainstore.ready(err => {
       if (err) return cb(err)
-      this.metadata = this.corestore.default(this._metadataOpts)
-      this.db = this.db || new MountableHypertrie(this.corestore, this.key, {
+      this.metadata = this.chainstore.default(this._metadataOpts)
+      this.db = this.db || new MountableBittrie(this.chainstore, this.key, {
         feed: this.metadata,
         sparse: this.sparseMetadata,
         extension: this.opts.extension !== false,
         subtype: this.subtype
       })
-      this.db.on('hypertrie', onhypertrie)
+      this.db.on('bittrie', onbittrie)
       this.db.on('error', onerror)
 
       self.metadata.on('error', onerror)
@@ -147,7 +147,7 @@ class Hyperdrive extends Nanoresource {
 
       this._unlistens.push(() => {
         self.db.removeListener('error', onerror)
-        self.db.removeListener('hypertrie', onhypertrie)
+        self.db.removeListener('bittrie', onbittrie)
         self.metadata.removeListener('error', onerror)
         self.metadata.removeListener('append', update)
         self.metadata.removeListener('extension', extension)
@@ -178,7 +178,7 @@ class Hyperdrive extends Nanoresource {
     })
 
     /**
-     * The first time the hyperdrive is created, we initialize both the db (metadata feed) and the content feed here.
+     * The first time the bitdrive is created, we initialize both the db (metadata feed) and the content feed here.
      */
     function initialize () {
       const contentName = self.metadata.key.toString('hex') + '-content'
@@ -195,7 +195,7 @@ class Hyperdrive extends Nanoresource {
     }
 
     /**
-     * If the hyperdrive has already been created, wait for the db (metadata feed) to load.
+     * If the bitdrive has already been created, wait for the db (metadata feed) to load.
      * If the metadata feed is writable, we can immediately load the content feed from its private key.
      * (Otherwise, we need to read the feed's metadata block first)
      */
@@ -242,7 +242,7 @@ class Hyperdrive extends Nanoresource {
       self.emit('peer-remove', peer)
     }
 
-    function onhypertrie (trie) {
+    function onbittrie (trie) {
       self.emit('metadata-feed', trie.feed)
       self.emit('mount', trie)
     }
@@ -261,7 +261,7 @@ class Hyperdrive extends Nanoresource {
   }
 
   _contentStateFromMetadata (metadata, cb) {
-    MountableHypertrie.getMetadata(metadata, (err, publicKey) => {
+    MountableBittrie.getMetadata(metadata, (err, publicKey) => {
       if (err) return cb(err)
       this._contentStateFromKey(publicKey, cb)
     })
@@ -275,7 +275,7 @@ class Hyperdrive extends Nanoresource {
     const contentOpts = { ...opts, ...contentOptions(this), cache: { data: false } }
 
     try {
-      var feed = this.corestore.get(contentOpts)
+      var feed = this.chainstore.get(contentOpts)
     } catch (err) {
       return cb(err)
     }
@@ -411,7 +411,7 @@ class Hyperdrive extends Nanoresource {
     name = fixName(name)
 
     const length = typeof opts.end === 'number' ? 1 + opts.end - (opts.start || 0) : typeof opts.length === 'number' ? opts.length : -1
-    const stream = coreByteStream({
+    const stream = chainByteStream({
       ...opts,
       highWaterMark: opts.highWaterMark || 64 * 1024
     })
@@ -420,8 +420,8 @@ class Hyperdrive extends Nanoresource {
       if (err) return stream.destroy(err)
       return this.stat(name, { file: true }, (err, st, trie) => {
         if (err) return stream.destroy(err)
-        if (st.mount && st.mount.hypercore) {
-          const feed = self.corestore.get({
+        if (st.mount && st.mount.unichain) {
+          const feed = self.chainstore.get({
             key: st.mount.key,
             sparse: self.sparse
           })
@@ -439,7 +439,7 @@ class Hyperdrive extends Nanoresource {
     })
 
     function oncontent (st, contentState) {
-      if (st.mount && st.mount.hypercore) {
+      if (st.mount && st.mount.unichain) {
         var byteOffset = 0
         var blockOffset = 0
         var blockLength = st.blocks
@@ -464,7 +464,7 @@ class Hyperdrive extends Nanoresource {
   }
 
   createDiffStream (other, prefix, opts) {
-    if (other instanceof Hyperdrive) other = other.version
+    if (other instanceof Bitdrive) other = other.version
     if (typeof prefix === 'object') return this.createDiffStream(other, '/', prefix)
     prefix = prefix || '/'
 
@@ -707,9 +707,9 @@ class Hyperdrive extends Nanoresource {
       if (err) return cb(err)
       if (name !== '/' && !st) return cb(new errors.FileNotFound(name))
       if (name === '/') return cb(null, Stat.directory(), this.db)
-      const trie = st[MountableHypertrie.Symbols.TRIE]
-      const mount = st[MountableHypertrie.Symbols.MOUNT]
-      const innerPath = st[MountableHypertrie.Symbols.INNER_PATH]
+      const trie = st[MountableBittrie.Symbols.TRIE]
+      const mount = st[MountableBittrie.Symbols.MOUNT]
+      const innerPath = st[MountableBittrie.Symbols.INNER_PATH]
       try {
         st = Stat.decode(st.value)
       } catch (err) {
@@ -972,10 +972,10 @@ class Hyperdrive extends Nanoresource {
       opts = isInitiator
       isInitiator = !!opts.initiator
     }
-    const stream = (opts && opts.stream) || new HypercoreProtocol(isInitiator, { ...opts })
+    const stream = (opts && opts.stream) || new BitProtocol(isInitiator, { ...opts })
     this.ready(err => {
       if (err) return stream.destroy(err)
-      this.corestore.replicate(isInitiator, { ...opts, stream })
+      this.chainstore.replicate(isInitiator, { ...opts, stream })
     })
     return stream
   }
@@ -986,7 +986,7 @@ class Hyperdrive extends Nanoresource {
       _db: this.db.checkout(version),
       _contentStates: this._contentStates,
     }
-    return new Hyperdrive(this.corestore, this.key, opts)
+    return new Bitdrive(this.chainstore, this.key, opts)
   }
 
   _closeFile (fd, cb) {
@@ -1067,7 +1067,7 @@ class Hyperdrive extends Nanoresource {
             total.blocks = stat.blocks
             total.size = stat.size
             total.downloadedBlocks = downloadedBlocks
-            // TODO: This is not possible to implement now. Need a better byte length index in hypercore.
+            // TODO: This is not possible to implement now. Need a better byte length index in unichain.
             // total.downloadedBytes = 0
             return cb(null, total)
           })
@@ -1119,13 +1119,13 @@ class Hyperdrive extends Nanoresource {
     if (this._unmirror) return this._unmirror
     const mirrorRanges = new Map()
 
-    this.on('content-feed', oncore)
-    this.on('metadata-feed', oncore)
+    this.on('content-feed', onchain)
+    this.on('metadata-feed', onchain)
     this.getAllMounts({ content: true }, (err, mounts) => {
       if (err) return this.emit('error', err)
       for (const { metadata, content } of mounts.values()) {
-        oncore(metadata)
-        oncore(content)
+        onchain(metadata)
+        onchain(content)
       }
     })
 
@@ -1135,17 +1135,17 @@ class Hyperdrive extends Nanoresource {
     function unmirror () {
       if (!self._unmirror) return
       self._unmirror = null
-      self.removeListener('content-feed', oncore)
-      self.removeListener('metadata-feed', oncore)
-      for (const [ core, range ] of mirrorRanges) {
-        core.undownload(range)
+      self.removeListener('content-feed', onchain)
+      self.removeListener('metadata-feed', onchain)
+      for (const [ chain, range ] of mirrorRanges) {
+        chain.undownload(range)
       }
     }
 
-    function oncore (core) {
-      if (!core) return
-      if (!self._unmirror || self._unmirror !== unmirror || mirrorRanges.has(core)) return
-      mirrorRanges.set(core, core.download({ start: 0, end: -1 }))
+    function onchain (chain) {
+      if (!chain) return
+      if (!self._unmirror || self._unmirror !== unmirror || mirrorRanges.has(chain)) return
+      mirrorRanges.set(chain, chain.download({ start: 0, end: -1 }))
     }
   }
 
@@ -1283,29 +1283,29 @@ class Hyperdrive extends Nanoresource {
       key,
       version: opts.version,
       hash: opts.hash,
-      hypercore: !!opts.hypercore
+      unichain: !!opts.unichain
     }
-    statOpts.directory = !opts.hypercore
+    statOpts.directory = !opts.unichain
 
-    if (opts.hypercore) {
-      const core = this.corestore.get({
+    if (opts.unichain) {
+      const chain = this.chainstore.get({
         key,
         ...opts,
         parents: [this.key],
         sparse: this.sparse
       })
-      core.ready(err => {
+      chain.ready(err => {
         if (err) return cb(err)
-        this.emit('content-feed', core)
-        statOpts.size = core.byteLength
-        statOpts.blocks = core.length
-        return mountCore()
+        this.emit('content-feed', chain)
+        statOpts.size = chain.byteLength
+        statOpts.blocks = chain.length
+        return mountChain()
       })
     } else {
       return process.nextTick(mountTrie, null)
     }
 
-    function mountCore () {
+    function mountChain () {
       self._createStat(path, statOpts, (err, st) => {
         if (err) return cb(err)
         return self.db.put(path, st.encode(), cb)
@@ -1326,7 +1326,7 @@ class Hyperdrive extends Nanoresource {
     this.stat(path, (err, st) => {
       if (err) return cb(err)
       if (!st.mount) return cb(new Error('Can only unmount mounts.'))
-      if (st.mount.hypercore) {
+      if (st.mount.unichain) {
         return this.unlink(path, cb)
       } else {
         return this.db.unmount(path, cb)
@@ -1418,12 +1418,12 @@ class Hyperdrive extends Nanoresource {
   }
 }
 
-function HyperdriveCompat (...args) {
-  if (!(this instanceof HyperdriveCompat)) return new HyperdriveCompat(...args)
+function BitdriveCompat (...args) {
+  if (!(this instanceof BitdriveCompat)) return new BitdriveCompat(...args)
   Nanoresource.call(this)
-  Hyperdrive.prototype._initialize.call(this, ...args)
+  Bitdrive.prototype._initialize.call(this, ...args)
 }
-Object.setPrototypeOf(HyperdriveCompat.prototype, Hyperdrive.prototype)
+Object.setPrototypeOf(BitdriveCompat.prototype, Bitdrive.prototype)
 
 function isObject (val) {
   return !!val && typeof val !== 'string' && !Buffer.isBuffer(val)

@@ -1,6 +1,6 @@
 const tape = require('tape')
-const hypercoreCrypto = require('hypercore-crypto')
-const Corestore = require('corestore')
+const bitwebCrypto = require('@web4/bitweb-crypto')
+const Chainstore = require('@web4/chainstore')
 const ram = require('random-access-memory')
 const create = require('./helpers/create')
 const Replicator = require('./helpers/replicator')
@@ -101,7 +101,7 @@ tape('root is always there', function (t) {
 })
 
 tape('provide keypair', function (t) {
-  const keyPair = hypercoreCrypto.keyPair()
+  const keyPair = bitwebCrypto.keyPair()
   var drive = create(keyPair.publicKey, { keyPair })
 
   drive.on('ready', function () {
@@ -121,9 +121,9 @@ tape('provide keypair', function (t) {
 })
 
 tape.skip('can reopen when providing a keypair', function (t) {
-  const keyPair = hypercoreCrypto.keyPair()
-  const store = new Corestore(ram)
-  var drive = create(keyPair.publicKey, { keyPair, corestore: store })
+  const keyPair = bitwebCrypto.keyPair()
+  const store = new Chainstore(ram)
+  var drive = create(keyPair.publicKey, { keyPair, chainstore: store })
 
   drive.on('ready', function () {
     t.ok(drive.writable)
@@ -135,7 +135,7 @@ tape.skip('can reopen when providing a keypair', function (t) {
       console.log('CORE LENGTH BEFORE CLOSE:', drive.metadata.length)
       drive.close(err => {
         t.error(err, 'no error')
-        drive = create(keyPair.publicKey, { keyPair, corestore: store })
+        drive = create(keyPair.publicKey, { keyPair, chainstore: store })
 
         drive.on('ready', function () {
           console.log('CORE LENGTH:', drive.metadata.length)

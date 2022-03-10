@@ -1,6 +1,6 @@
 const test = require('tape')
 const ram = require('random-access-memory')
-const Corestore = require('corestore')
+const Chainstore = require('@web4/chainstore')
 
 const Replicator = require('./helpers/replicator')
 const create = require('./helpers/create')
@@ -172,12 +172,12 @@ test('download cancellation', t => {
 
 test('download omits mounts by default', t => {
   const r = new Replicator(t)
-  const store = new Corestore(ram)
+  const store = new Chainstore(ram)
   var drive1, mount, drive2
 
   store.ready(() => {
-    drive1 = create({ corestore: store, namespace: 'd1' })
-    mount = create({ corestore: store, namespace: 'd2' })
+    drive1 = create({ chainstore: store, namespace: 'd1' })
+    mount = create({ chainstore: store, namespace: 'd2' })
     drive1.ready(() => {
       mount.ready(() => {
         drive2 = create(drive1.key)
@@ -224,12 +224,12 @@ test('download omits mounts by default', t => {
 
 test('download with noMounts false includes mounts', t => {
   const r = new Replicator(t)
-  const store = new Corestore(ram)
+  const store = new Chainstore(ram)
   var drive1, mount, drive2
 
   store.ready(() => {
-    drive1 = create({ corestore: store, namespace: 'd1' })
-    mount = create({ corestore: store, namespace: 'd2' })
+    drive1 = create({ chainstore: store, namespace: 'd1' })
+    mount = create({ chainstore: store, namespace: 'd2' })
     drive1.ready(() => {
       mount.ready(() => {
         drive2 = create(drive1.key)
@@ -397,12 +397,12 @@ test('calling mirror is idempotent', t => {
 
 test('mirroring also mirrors mounts', t => {
   const r = new Replicator(t)
-  const store = new Corestore(ram)
+  const store = new Chainstore(ram)
   var drive1, mount, drive2
 
   store.ready(() => {
-    drive1 = create({ corestore: store, namespace: 'd1' })
-    mount = create({ corestore: store, namespace: 'd2' })
+    drive1 = create({ chainstore: store, namespace: 'd1' })
+    mount = create({ chainstore: store, namespace: 'd2' })
     drive1.ready(() => {
       mount.ready(() => {
         drive2 = create(drive1.key)
@@ -447,12 +447,12 @@ test('mirroring also mirrors mounts', t => {
 
 test('mirroring mirrors dynamically-added mounts', t => {
   const r = new Replicator(t)
-  const store = new Corestore(ram)
+  const store = new Chainstore(ram)
   var drive1, mount, drive2
 
   store.ready(() => {
-    drive1 = create({ corestore: store, namespace: 'd1' })
-    mount = create({ corestore: store, namespace: 'd2' })
+    drive1 = create({ chainstore: store, namespace: 'd1' })
+    mount = create({ chainstore: store, namespace: 'd2' })
     drive1.ready(() => {
       mount.ready(() => {
         drive2 = create(drive1.key)

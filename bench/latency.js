@@ -2,7 +2,7 @@ const { promisify } = require('util')
 const nanobench = require('nanobench')
 const pump = require('pump')
 const LatencyStream = require('latency-stream')
-const HypercoreProtocol = require('hypercore-protocol')
+const BitProtocol = require('@web4/bit-protocol')
 
 const replicateAll = require('../test/helpers/replicate')
 const create = require('../test/helpers/create')
@@ -38,8 +38,8 @@ nanobench('first read, 50ms latency', async b => {
     }
 
     function connect () {
-      s1 = new HypercoreProtocol(true, { live: true })
-      s2 = new HypercoreProtocol(false, { live: true })
+      s1 = new BitProtocol(true, { live: true })
+      s2 = new BitProtocol(false, { live: true })
       pump(s1, new LatencyStream([LATENCY, LATENCY]), s2, new LatencyStream([LATENCY, LATENCY]), s1, err => {
         // Suppress stream errors
       })
@@ -88,8 +88,8 @@ nanobench('subsequent read, 50ms latency', async b => {
     }
 
     function connect () {
-      s1 = new HypercoreProtocol(true, { live: true })
-      s2 = new HypercoreProtocol(false, { live: true })
+      s1 = new BitProtocol(true, { live: true })
+      s2 = new BitProtocol(false, { live: true })
       pump(s1, new LatencyStream([LATENCY, LATENCY]), s2, new LatencyStream([LATENCY, LATENCY]), s1, err => {
         // Suppress stream errors
       })
@@ -143,8 +143,8 @@ nanobench('subsequent seek, 50ms latency', async b => {
     }
 
     function connect () {
-      s1 = new HypercoreProtocol(true, { live: true })
-      s2 = new HypercoreProtocol(false, { live: true })
+      s1 = new BitProtocol(true, { live: true })
+      s2 = new BitProtocol(false, { live: true })
       pump(s1, new LatencyStream([LATENCY, LATENCY]), s2, new LatencyStream([LATENCY, LATENCY]), s1, err => {
         // Suppress stream errors
       })
@@ -200,8 +200,8 @@ nanobench('reading the same file twice, 50ms latency', async b => {
     }
 
     function connect () {
-      s1 = new HypercoreProtocol(true, { live: true })
-      s2 = new HypercoreProtocol(false, { live: true })
+      s1 = new BitProtocol(true, { live: true })
+      s2 = new BitProtocol(false, { live: true })
       pump(s1, new LatencyStream([LATENCY, LATENCY]), s2, new LatencyStream([LATENCY, LATENCY]), s1, err => {
         // Suppress stream errors
       })
@@ -257,8 +257,8 @@ nanobench('listing a directory with 100 files, 50ms latency', async b => {
     }
 
     function connect () {
-      s1 = new HypercoreProtocol(true, { live: true })
-      s2 = new HypercoreProtocol(false, { live: true })
+      s1 = new BitProtocol(true, { live: true })
+      s2 = new BitProtocol(false, { live: true })
       pump(s1, new LatencyStream([LATENCY, LATENCY]), s2, new LatencyStream([LATENCY, LATENCY]), s1, err => {
         // Suppress stream errors
       })

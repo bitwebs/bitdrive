@@ -1,10 +1,10 @@
 var ram = require('random-access-memory')
-var Hyperdrive = require('../../')
+var Bitdrive = require('../../')
 
 module.exports = function (key, opts) {
   if (key && !(key instanceof Buffer)) {
     opts = key
     key = null
   }
-  return new Hyperdrive((opts && opts.corestore) || ram, key, opts)
+  return new Bitdrive((opts && opts.chainstore) || ram, key, opts)
 }

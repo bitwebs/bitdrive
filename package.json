@@ -1,6 +1,6 @@
 {
   "name": "@web4/bitdrive",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Bitdrive is a secure, real time distributed file system",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/bitwebs/bitdrive#readme",
   "dependencies": {
     "byte-stream": "^2.1.0",
-    "@web4/chainstore": "^1.0.0",
+    "@web4/chainstore-legacy": "^1.0.0",
     "custom-error-class": "^1.0.0",
     "duplexify": "^3.7.1",
     "filesystem-constants": "^1.0.0",

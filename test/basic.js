@@ -1,6 +1,6 @@
 const tape = require('tape')
 const bitwebCrypto = require('@web4/bitweb-crypto')
-const Chainstore = require('@web4/chainstore')
+const Chainstore = require('@web4/chainstore-legacy')
 const ram = require('random-access-memory')
 const create = require('./helpers/create')
 const Replicator = require('./helpers/replicator')

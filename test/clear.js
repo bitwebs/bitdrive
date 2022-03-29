@@ -1,6 +1,6 @@
 const test = require('tape')
 const ram = require('random-access-memory')
-const Chainstore = require('@web4/chainstore-legacy')
+const Chainstore = require('@web4/chainstore')
 
 const Replicator = require('./helpers/replicator')
 const create = require('./helpers/create')

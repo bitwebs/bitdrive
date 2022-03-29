@@ -15,7 +15,7 @@ const chainByteStream = require('@web4/unichain-byte-stream')
 const Nanoresource = require('nanoresource/emitter')
 const BitProtocol = require('@web4/bit-protocol')
 const MountableBittrie = require('@web4/mountable-bittrie')
-const Chainstore = require('@web4/chainstore-legacy')
+const Chainstore = require('@web4/chainstore')
 const { Stat } = require('@web4/bitdrive-schemas')
 
 const createFileDescriptor = require('./lib/fd')
